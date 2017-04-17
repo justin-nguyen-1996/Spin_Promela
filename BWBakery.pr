@@ -1,17 +1,28 @@
 /*
 Promela code of Black-White Bakery Algorithm
-Last Edit: 4/16/17 8:26 PM
+Last Edit: 4/16/17 8:57 PM
 */
 
+
+/*definitions*/
 mtype = {black, white};
 #define n 100
 
+/*global variables*/
 byte color;
 bool choosing[n];
 int ticket[n];
 byte myColor[n];
 
-proctype bakeryProcess(){
+/*holds the processes till inits are done*/
+bool go = false;
+
+
+
+active [n] proctype bakeryProcess(){
+	go == true;
+
+	/*beginning of Black-White Bakery Algo*/
 	int i = _pid;
 	choosing[i] = true;		/*enter doorway*/
 	myColor[i] = color;
@@ -50,7 +61,7 @@ proctype bakeryProcess(){
 
 
 	/*critical section*/
-	printf("Process %d is in CS\n", _pid);
+	printf("\nProcess %d is in CS.", _pid);
 
 	if
 	::	myColor[i] == black	->
@@ -72,7 +83,7 @@ init{
 
 	color = black;
 
-	for(i: 0 .. n){
-		run bakeryProcess();
-	}
+	/*processes are free to run*/
+	printf("\n=============[S T A R T]=============");
+	go = true;
 }
