@@ -2,9 +2,9 @@
 
 #define N 3
 
-int level[N];
+int level[N] = -1;
 int last_to_enter[(N - 1)];
-bool checking[N];
+bool check[N];
 int ncrit;
 
 active [N] proctype user() 
@@ -16,24 +16,19 @@ again:  l = 0;
 	    level[_pid] = l;
 	    last_to_enter[l] = _pid;
 	    bool wait = false;
-	    /*do 
-	    :: atomic { int k = 0;
-	       for (k : 0 .. (N - 1)) {
-	       	   if 
-		   :: (level[k] >= l && k != _pid) -> wait = true;
-		   :: else -> skip;
-		   fi
-	       } };
-	       if
-	       :: (last_to_enter[l] == _pid && wait == true) -> wait = false;
-	       :: else -> break;
-	       fi
-	    od*/
-	    int k;
- 	    for (k : 0 .. (N - 1)) { 
-		(last_to_enter[l] != _pid || ((level[k] < l && k != _pid) || (k == _pid)));
-	    }
 	    
+	    /* Wait loop translation to promela */
+	    int k;
+	    do
+	    :: (check[_pid] == false) -> check[_pid] = true;
+	    for (k : 0 .. (N - 1)) { 
+		if 
+		:: (last_to_enter[l] != _pid || ((level[k] < l && k != _pid) || (k == _pid))) -> check[_pid] = check[_pid] && true;
+		:: else -> check[_pid] = false;
+		fi
+	    }
+	    :: (check[_pid] == true) -> check[_pid] = false; break;
+	    od
 	}
 	ncrit = ncrit + 1;
 	assert(ncrit == 1);
