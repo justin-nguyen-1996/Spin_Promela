@@ -1,12 +1,12 @@
 /*
 Promela code of Black-White Bakery Algorithm
-Last Edit: 4/16/17 8:57 PM
+Last Edit: 4/16/17 9:27 PM
 */
 
 
 /*definitions*/
 mtype = {black, white};
-#define n 100
+#define n 10
 
 /*global variables*/
 byte color;
@@ -29,10 +29,10 @@ active [n] proctype bakeryProcess(){
 
 	/*simulate the max function*/
 	int iter;
-	int max;
-	for(iter: 0 .. n){
+	int max = ticket[i];
+	for(iter: 0 .. n-1){
 		if
-		::	(iter != i)	-> 
+		::	(iter != i)	&& myColor[iter] == myColor[i] -> 
 			if
 			::	ticket[iter] > max	-> max = ticket[iter];
 			::	else
@@ -45,17 +45,21 @@ active [n] proctype bakeryProcess(){
 	choosing[i] = false;	/*exit doorway*/
 
 	int j;
-	for(j: 0 .. n){
-		choosing[j] == false;
+	for(j: 0 .. n-1){
 		if
-		::	myColor[j] == myColor[i]	->
-			(ticket[j] == 0 || 
-				(ticket[j] >= ticket[i] && j >= i) ||
-				myColor[j] != myColor[i]);
-		::else	->
-			(ticket[j] == 0 ||
-				myColor[i] != color ||
-				myColor[j] == myColor[i]);
+		::	j != i 	->
+			choosing[j] == false;
+			if
+			::	myColor[j] == myColor[i]	->
+				(ticket[j] == 0 ||
+					(ticket[j] >= ticket[i] && j >= i) ||
+					myColor[j] != myColor[i]);
+			::	else	->
+				(ticket[j] == 0 ||
+					myColor[i] != color ||
+					myColor[j] == myColor[i]);
+			fi
+		::	else
 		fi
 	}
 
@@ -75,8 +79,9 @@ active [n] proctype bakeryProcess(){
 
 init{
 	/*initializations*/
+	printf("\nInit is process: %d\n", _pid);
 	int i;
-	for(i: 0 .. n){
+	for(i: 0 .. n-1){
 		ticket[i] = 0;
 		choosing[i] = false;
 	}
@@ -84,6 +89,6 @@ init{
 	color = black;
 
 	/*processes are free to run*/
-	printf("\n=============[S T A R T]=============");
+	printf("\n=============[S T A R T]=============\n");
 	go = true;
 }
