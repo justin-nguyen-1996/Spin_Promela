@@ -1,0 +1,45 @@
+/* Filter Algorithm */
+
+#define N 3
+
+int level[N];
+int last_to_enter[(N - 1)];
+bool checking[N];
+int ncrit;
+
+active [N] proctype user() 
+{
+	assert (_pid < N);
+	int l;
+again:  l = 0;
+	for (l : 0 .. (N - 2)) {
+	    level[_pid] = l;
+	    last_to_enter[l] = _pid;
+	    bool wait = false;
+	    /*do 
+	    :: atomic { int k = 0;
+	       for (k : 0 .. (N - 1)) {
+	       	   if 
+		   :: (level[k] >= l && k != _pid) -> wait = true;
+		   :: else -> skip;
+		   fi
+	       } };
+	       if
+	       :: (last_to_enter[l] == _pid && wait == true) -> wait = false;
+	       :: else -> break;
+	       fi
+	    od*/
+	    int k;
+ 	    for (k : 0 .. (N - 1)) { 
+		(last_to_enter[l] != _pid || ((level[k] < l && k != _pid) || (k == _pid)));
+	    }
+	    
+	}
+	ncrit = ncrit + 1;
+	assert(ncrit == 1);
+	printf("Process %d is in CS\n", _pid);
+	ncrit = ncrit - 1;
+	level[_pid] = -1;
+
+	goto again;
+}
