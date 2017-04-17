@@ -1,0 +1,78 @@
+/*
+Promela code of Black-White Bakery Algorithm
+Last Edit: 4/16/17 8:26 PM
+*/
+
+mtype = {black, white};
+#define n 100
+
+byte color;
+bool choosing[n];
+int ticket[n];
+byte myColor[n];
+
+proctype bakeryProcess(){
+	int i = _pid;
+	choosing[i] = true;		/*enter doorway*/
+	myColor[i] = color;
+
+	/*simulate the max function*/
+	int iter;
+	int max;
+	for(iter: 0 .. n){
+		if
+		::	(iter != i)	-> 
+			if
+			::	ticket[iter] > max	-> max = ticket[iter];
+			::	else
+			fi
+		::	else
+		fi
+	}
+	ticket[i] = max + 1;
+
+	choosing[i] = false;	/*exit doorway*/
+
+	int j;
+	for(j: 0 .. n){
+		choosing[j] == false;
+		if
+		::	myColor[j] == myColor[i]	->
+			(ticket[j] == 0 || 
+				(ticket[j] >= ticket[i] && j >= i) ||
+				myColor[j] != myColor[i]);
+		::else	->
+			(ticket[j] == 0 ||
+				myColor[i] != color ||
+				myColor[j] == myColor[i]);
+		fi
+	}
+
+
+	/*critical section*/
+	printf("Process %d is in CS\n", _pid);
+
+	if
+	::	myColor[i] == black	->
+		color = white;
+	::	else	->
+		color = black;
+	fi
+
+	ticket[i] = 0;
+}
+
+init{
+	/*initializations*/
+	int i;
+	for(i: 0 .. n){
+		ticket[i] = 0;
+		choosing[i] = false;
+	}
+
+	color = black;
+
+	for(i: 0 .. n){
+		run bakeryProcess();
+	}
+}
