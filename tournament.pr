@@ -1,13 +1,16 @@
 /* Tournament Algorithm based on Peterson's Algorithm for Two Processes */
 
-#define N 4
+#define N 4 /* Number of processes */
+#define LEVEL 2 /* How many levels you need of competition for the tournament (log (N)) 
+	      	   NOTE: can't be done in promela easily because of non-floating point numbers 
+		   and hard to use embedded c_code constructs that can't interact with promela code */
 
 /* array type to imply two-dimensional arrays for wantCS and turn */
 typedef array {
 	int procs[N];
 };
 
-int LEVEL = 2;
+
 array wantCS[LEVEL];
 array turn[LEVEL];
 int ncrit;
@@ -17,6 +20,7 @@ active [N] proctype user()
 	int node;
 	int level;
 	int mult;
+	int path[LEVEL] = -1;
 again: 	mult = 1;
 	level = 0;
 	node = _pid;
@@ -24,19 +28,23 @@ again: 	mult = 1;
 	    int id = node % 2;
 	    node = node / 2;
 	    wantCS[level].procs[2 * node + id] = 1;
-	    turn[level].procs[node] = id;
-	    (wantCS[level].procs[2 * node + 1 - id] == 0 || turn[level].procs[node] == 1 - id);
+	    path[level] = 2 * node + id;
+	    turn[level].procs[node] = 1 - id;
+	    do
+	    :: (wantCS[level].procs[2 * node + 1 - id] == 0 || turn[level].procs[node] == id) -> break;
+	    :: else -> skip;
+	    od
 	}
 
 	ncrit = ncrit + 1;
 	assert(ncrit == 1);
 	printf("Process %d is in CS\n", _pid);
-	
 	ncrit = ncrit - 1;
-	level = LEVEL;
-	do 
-	:: (level > 0) -> int i = 0; mult = 1; for (i : 1 .. level) { mult = mult * 2; }; node = _pid / (mult - 1); wantCS[level-1].procs[node] = 0; level = level - 1;
-	:: (level <= 0) -> break;
+	
+	level = LEVEL - 1;
+	do
+	:: (level >= 0) -> wantCS[level].procs[path[level]] = 0; level = level - 1;
+	:: (level < 0) -> break;
 	od
 	
 	goto again
