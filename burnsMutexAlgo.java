@@ -1,3 +1,4 @@
+// TODO: replace the boolean[] with an AtomicIntegerArray and use its set and get methods
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class BurnsME {
