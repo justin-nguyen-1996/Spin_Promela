@@ -1,6 +1,6 @@
 /*
 Promela code of Black-White Bakery Algorithm
-Last Edit: 4/16/17 10:10 PM
+Last Edit: 4/20/17 4:22 PM
 */
 
 
@@ -55,11 +55,11 @@ active [n] proctype bakeryProcess(){
 			if
 			::	myColor[j] == myColor[i]	->
 				(ticket[j] == 0 ||
-					(ticket[j] >= ticket[i] && j >= i) ||  /*unsure if the || is supposed to be && before j >= i*/
+					(ticket[j] > ticket[i]) || (ticket[j] == ticket[i] && j > i) ||
 					myColor[j] != myColor[i]);
 			::	else	->
 				(ticket[j] == 0 ||
-					myColor[i] != color ||
+					(myColor[i] != color) ||
 					myColor[j] == myColor[i]);
 			fi
 		::	else
