@@ -1,0 +1,112 @@
+/*
+Promela code of Black-White Bakery Algorithm
+Last Edit: 4/16/17 10:10 PM
+*/
+
+
+/*definitions*/
+mtype = {black, white};
+#define n 100
+
+/*global variables*/
+byte color;
+bool choosing[n];
+int ticket[n];
+byte myColor[n];
+int done;
+int mutex = 0;
+
+/*holds the processes till inits are done*/
+bool go = false;
+
+
+
+active [n] proctype bakeryProcess(){
+	go == true;
+
+	/*beginning of Black-White Bakery Algo*/
+	int i = _pid;
+	choosing[i] = true;		/*enter doorway*/
+	myColor[i] = color;
+
+	/*simulate the max function*/
+	int iter;
+	int max = ticket[i];
+	for(iter: 0 .. (n-1)){
+		if
+		::	myColor[iter] == myColor[i] ->
+			if
+			::	ticket[iter] > max	-> max = ticket[iter];
+			::	else
+			fi
+		::	else
+		fi
+	}
+	ticket[i] = max + 1;
+
+	choosing[i] = false;	/*exit doorway*/
+
+	/*wait for other processes ahead of it*/
+	int j;
+	for(j: 0 .. (n-1)){
+		if
+		::	j != i 	->
+			choosing[j] == false;
+			if
+			::	myColor[j] == myColor[i]	->
+				(ticket[j] == 0 ||
+					(ticket[j] >= ticket[i] && j >= i) ||  /*unsure if the || is supposed to be && before j >= i*/
+					myColor[j] != myColor[i]);
+			::	else	->
+				(ticket[j] == 0 ||
+					myColor[i] != color ||
+					myColor[j] == myColor[i]);
+			fi
+		::	else
+		fi
+	}
+
+
+	/*critical section*/
+	mutex++;
+	printf("\nProcess %d is in CS.", _pid);
+
+	if
+	::	myColor[i] == black	->
+		color = white;
+	::	else	->
+		color = black;
+	fi
+
+
+	/*process is finished*/
+	mutex--;
+	ticket[i] = 0;
+	done++;
+}
+
+proctype monitor(){
+	assert(mutex <= 1);
+}
+
+init{
+	/*initializations*/
+	printf("\nInit is process: %d\n", _pid);
+	done = 0;
+	int i;
+	for(i: 0 .. (n-1)){
+		ticket[i] = 0;
+		choosing[i] = false;
+	}
+
+	color = black;
+
+	/*processes are free to run*/
+	printf("\n=============[S T A R T]=============\n");
+	go = true;
+	run monitor();
+
+	/*print finished statement*/
+	done >= n;
+	printf("\n\n=============[ D O N E ]=============\n");
+}
