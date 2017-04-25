@@ -13,6 +13,7 @@ typedef array {
 
 array wantCS[LEVEL];
 array turn[LEVEL];
+int counter[N] = 3;
 int ncrit;
 
 active [N] proctype user()
@@ -37,6 +38,7 @@ again: 	mult = 1;
 	}
 
 	ncrit = ncrit + 1;
+	counter[_pid] = counter[_pid] - 1;
 	assert(ncrit == 1);
 	printf("Process %d is in CS\n", _pid);
 	ncrit = ncrit - 1;
@@ -47,6 +49,9 @@ again: 	mult = 1;
 	:: (level < 0) -> break;
 	od
 	
-	goto again
+	if
+	:: counter[_pid] <= 0 -> skip;
+	:: else -> goto again;
+	fi
 }
 
