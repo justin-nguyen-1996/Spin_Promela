@@ -1,0 +1,43 @@
+/* Tournament Algorithm based on Peterson's Algorithm for Two Processes */
+
+#define N 4
+
+/* array type to imply two-dimensional arrays for wantCS and turn */
+typedef array {
+	int procs[N];
+};
+
+int LEVEL = 2;
+array wantCS[LEVEL];
+array turn[LEVEL];
+int ncrit;
+
+active [N] proctype user()
+{
+	int node;
+	int level;
+	int mult;
+again: 	mult = 1;
+	level = 0;
+	node = _pid;
+	for (level : 0 .. (LEVEL - 1)) {
+	    int id = node % 2;
+	        node = node / 2;
+		    wantCS[level].procs[2 * node + id] = 1;
+		        turn[level].procs[node] = id;
+			    (wantCS[level].procs[2 * node + 1 - id] == 0 || turn[level].procs[node] == 1 - id);
+			    }
+
+			    ncrit = ncrit + 1;
+			    assert(ncrit == 1);
+			    printf("Process %d is in CS\n", _pid);
+			    
+			    ncrit = ncrit - 1;
+			    level = LEVEL;
+			    do 
+			    :: (level > 0) -> int i = 0; mult = 1; for (i : 1 .. level) { mult = mult * 2; }; node = _pid / (mult - 1); wantCS[level-1].procs[node] = 0; level = level - 1;
+			    :: (level <= 0) -> break;
+			    od
+			    
+			    goto again
+}
